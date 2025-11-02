@@ -538,7 +538,7 @@
         <div class="retro-bg border-2 retro-border-active retro-shadow-active rounded-lg p-8 max-w-md w-full text-center m-4">
             <h2 class="text-2xl font-bold retro-text-header mb-4">Unsupported Screen Size</h2>
             <p class="text-gray-300 mb-6">
-                This visualizer is designed for large screens and requires a minimum width of 1725 pixels to function correctly.
+                This visualizer is designed for large screens and requires a minimum width of 1715 pixels to function correctly.
                 <br><br>
                 Please resize your window or switch to a larger device.
             </p>
@@ -552,7 +552,7 @@
         </header>
 
         <!-- Sticky Header Container -->
-        <div class="sticky top-4 z-50 flex justify-center items-start gap-4 mb-8">
+        <div class="sticky top-4 z-50 flex justify-center items-center gap-4 mb-8">
             <!-- Control Bar -->
             <div id="control-bar" class="control-bar-main">
                  <button id="reset-btn" class="control-btn reset" title="Reset">RST</button>
@@ -574,18 +574,15 @@
                  </select>
             </div>
             
-            <!-- Right side sticky elements -->
-            <div class="flex flex-col gap-2">
-                <!-- Step Counter -->
-                <div id="step-counter" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg w-80 text-center">
-                    <span id="step-counter-text" class="text-lg font-semibold retro-text-header">Step: 0 / 0</span>
-                </div>
+            <!-- Step Counter -->
+            <div id="step-counter" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg text-center">
+                <span id="step-counter-text" class="text-lg font-semibold retro-text-header">Step: 0 / 0</span>
+            </div>
 
-                <!-- Input Section -->
-                <div id="input-section" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg w-80">
-                    <label for="message-input" class="block text-sm font-medium retro-text-header mb-2">Enter Message:</label>
-                    <textarea id="message-input" class="w-full h-20 p-2 bg-black text-gray-200 border retro-border rounded-md font-mono focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">abc</textarea>
-                </div>
+            <!-- Input Section -->
+            <div id="input-section" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg w-96">
+                <label for="message-input" class="block text-sm font-medium retro-text-header mb-2">Enter Message:</label>
+                <textarea id="message-input" class="w-full h-24 p-2 bg-black text-gray-200 border retro-border rounded-md font-mono focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">abc</textarea>
             </div>
         </div>
 
@@ -803,7 +800,7 @@
                 const mainAppEl = document.querySelector('.main-container');
                 const sidebars = document.querySelectorAll('.constants-sidebar');
 
-                if (window.innerWidth < 1725) {
+                if (window.innerWidth < 1715) {
                     warningEl.style.display = 'flex';
                     if (mainAppEl) mainAppEl.style.display = 'none';
                     sidebars.forEach(el => el.style.display = 'none');
