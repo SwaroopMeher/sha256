@@ -403,7 +403,7 @@
         .constants-sidebar {
             position: fixed;
             top: 0; bottom: 0;
-            width: 240px; /* Wider for binary */
+            width: 220px; /* Wider for binary */
             padding: 1rem;
             padding-top: 3rem; 
             background-color: #000;
@@ -486,8 +486,8 @@
 
         /* Main content margin */
         .main-container {
-            margin-left: 240px;
-            margin-right: 240px;
+            margin-left: 220px;
+            margin-right: 220px;
         }
 
         /* Visual Padding */
@@ -538,21 +538,21 @@
         <div class="retro-bg border-2 retro-border-active retro-shadow-active rounded-lg p-8 max-w-md w-full text-center m-4">
             <h2 class="text-2xl font-bold retro-text-header mb-4">Unsupported Screen Size</h2>
             <p class="text-gray-300 mb-6">
-                This visualizer is designed for large screens and requires a minimum width of 1715 pixels to function correctly.
+                This visualizer is designed for large screens and requires a minimum width of 1280 pixels to function correctly.
                 <br><br>
                 Please resize your window or switch to a larger device.
             </p>
         </div>
     </div>
 
-    <div class="container mx-auto max-w-6xl main-container">
+    <div class="container mx-auto max-w-5xl main-container">
         <header class="text-center my-8">
             <h1 class="text-4xl font-bold retro-text-header">SHA-256 Binary Visualizer</h1>
             <p class="text-lg text-gray-400 mt-2">An interactive, step-by-step visualization of the SHA-256 hashing algorithm.</p>
         </header>
 
         <!-- Sticky Header Container -->
-        <div class="sticky top-4 z-50 flex justify-center items-center gap-4 mb-8">
+        <div class="sticky top-4 z-50 flex justify-center items-center gap-4 mb-8 flex-wrap">
             <!-- Control Bar -->
             <div id="control-bar" class="control-bar-main">
                  <button id="reset-btn" class="control-btn reset" title="Reset">RST</button>
@@ -800,7 +800,7 @@
                 const mainAppEl = document.querySelector('.main-container');
                 const sidebars = document.querySelectorAll('.constants-sidebar');
 
-                if (window.innerWidth < 1715) {
+                if (window.innerWidth < 1280) {
                     warningEl.style.display = 'flex';
                     if (mainAppEl) mainAppEl.style.display = 'none';
                     sidebars.forEach(el => el.style.display = 'none');
