@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHA-256 Binary Visualizer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Set Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Use Inter as the default font, and Roboto Mono for code */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+        }
+
+        code, .font-mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* --- Multi-Color Retro Theme --- */
+        /* Text */
+        .retro-text-header { color: #d9f99d; } /* lime-200 */
+        .retro-text-accent { color: #f87171; } /* red-400 */
+        .retro-text-dim { color: #64748b; } /* slate-500 */
+
+        /* UI & Borders */
+        .retro-bg { background-color: #111827; } /* gray-900 */
+        .retro-border { border-color: #374151; } /* gray-700 */
+        .retro-border-active { border-color: #22d3ee; } /* cyan-400 */
+        .retro-shadow-active { box-shadow: 0 0 15px 5px rgba(34, 211, 238, 0.2); }
+
+        /* Buttons */
+        .retro-btn {
+            background-color: #164e63; /* cyan-800 */
+            color: #a5f3fc; /* cyan-200 */
+            border: 1px solid #22d3ee; /* cyan-400 */
+            transition: all 0.2s ease;
+        }
+        .retro-btn:hover {
+            background-color: #22d3ee; /* cyan-400 */
+            color: #111827; /* gray-900 */
+        }
+        .retro-btn:disabled {
+            background-color: #1f2937; /* gray-800 */
+            color: #4b5563; /* gray-600 */
+            border-color: #374151; /* gray-700 */
+            cursor: not-allowed;
+        }
+        .retro-btn.reset {
+            background-color: #7f1d1d; /* red-800 */
+            color: #fca5a5; /* red-300 */
+            border-color: #f87171; /* red-400 */
+        }
+        .retro-btn.reset:hover {
+            background-color: #f87171; /* red-400 */
+            color: #111827; /* gray-900 */
+        }
+
+        /* --- Control Bar (Sticky) --- */
+        .control-bar-main {
+            width: fit-content;
+            background-color: rgba(17, 24, 39, 0.9); /* gray-900 with 90% opacity */
+            border: 1px solid #374151; /* gray-700 */
+            border-radius: 8px;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .control-btn {
+            background-color: #164e63; /* cyan-800 */
+            color: #a5f3fc; /* cyan-200 */
+            border: 1px solid #22d3ee; /* cyan-400 */
+            border-radius: 4px;
+            width: 3rem;
+            height: 2.5rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .control-btn:hover {
+            background-color: #22d3ee; /* cyan-400 */
+            color: #111827; /* gray-900 */
+        }
+        .control-btn:disabled {
+            background-color: #1f2937; /* gray-800 */
+            color: #4b5563; /* gray-600 */
+            border-color: #374151; /* gray-700 */
+            cursor: not-allowed;
+        }
+        .control-btn.reset {
+            background-color: #7f1d1d; /* red-800 */
+            color: #fca5a5; /* red-300 */
+            border-color: #f87171; /* red-400 */
+        }
+        .control-btn.reset:hover {
+            background-color: #f87171; /* red-400 */
+            color: #111827; /* gray-900 */
+        }
+        .control-bar-main select {
+            background-color: #164e63; /* cyan-800 */
+            color: #a5f3fc; /* cyan-200 */
+            border: 1px solid #22d3ee; /* cyan-400 */
+            border-radius: 4px;
+            height: 2.5rem;
+            padding: 0 0.5rem;
+            font-weight: 500;
+        }
+
+
+        /* --- Data Colors --- */
+        .hex-data {
+            color: #a3e635; /* lime-400 (Green) */
+            background-color: #374151; /* gray-700 */
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .bin-data {
+            color: #a3e635; /* lime-400 (Green) */
+            background-color: #1f2937; /* gray-800 */
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+        .bin-data.small {
+            font-size: 0.7rem;
+            letter-spacing: 0.02em;
+        }
+        .zero-padding-data {
+            word-break: break-all;
+        }
+
+        .op-name {
+            color: #e879f9; /* fuchsia-400 (Magenta/Pink) */
+            font-weight: 500;
+        }
+        .var-name {
+            color: #60a5fa; /* blue-400 (Blue) */
+            font-weight: 500;
+        }
+
+        /* --- Flowchart Styles --- */
+        .flow-stage {
+            background-color: #111827; /* gray-900 */
+            border: 1px solid #374151; /* gray-700 */
+            border-radius: 8px;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            /* Hidden by default */
+            opacity: 0; 
+            height: 0; 
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            transform: scale(0.98);
+        }
+        .flow-stage.visible {
+            opacity: 0.7; 
+            height: auto;
+            padding: 1rem; 
+            margin-top: 1rem; 
+            margin-bottom: 1rem;
+            transform: scale(1);
+        }
+        .flow-stage.active {
+            opacity: 1;
+            border-color: #22d3ee; /* cyan-400 */
+            box-shadow: 0 0 15px 5px rgba(34, 211, 238, 0.2);
+            transform: scale(1.02);
+        }
+
+        .flow-stage h3, .flow-stage h4 {
+            color: #d9f99d; /* lime-200 */
+            font-weight: 600;
+            font-size: 1.25rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .internal-stage h5 {
+            color: #d9f99d; /* lime-200 */
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .update-hash-grid .aligned-bits {
+            margin-bottom: 1rem;
+        }
+
+        /* Arrow */
+        .flow-arrow {
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; color: #4b5563; /* gray-600 */
+            transition: all 0.5s ease;
+            /* Hidden by default */
+            height: 0; opacity: 0; overflow: hidden;
+            margin: -0.5rem 0;
+        }
+        .flow-arrow.visible {
+            height: 2.5rem; /* 40px */
+            opacity: 0.7; color: #9ca3af; /* gray-400 */
+        }
+
+        /* Internal flow */
+        .internal-flow {
+            padding-left: 1.5rem;
+            border-left: 2px dashed #4b5563;
+            margin-top: 1rem;
+        }
+        .internal-stage {
+             background-color: #000;
+             border: 1px solid #374151;
+             border-radius: 8px;
+             padding: 1rem;
+             margin-top: 1rem;
+        }
+
+        /* --- H to V Link Diagram --- */
+        .h-v-link-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            font-family: 'Roboto Mono', monospace;
+        }
+        .h-v-link-grid .var-name {
+            font-size: 1.1rem;
+        }
+        .h-v-link-grid .bin-data {
+            font-size: 0.8rem;
+        }
+        .h-v-link-grid .link-arrow {
+            font-size: 1.5rem;
+            color: #e879f9; /* fuchsia-400 */
+        }
+
+        /* --- Rotated/Shifted Bit Highlight (FIXED) --- */
+        .bit-string-container {
+            display: flex;
+            white-space: pre;
+        }
+        .bit-string-container > span {
+            display: inline-block;
+            width: 0.6em; /* Fixed width for each character */
+            text-align: center;
+        }
+        .highlighted-bits {
+            color: #f87171; /* red-400, no background, no font-size change */
+            font-weight: 600;
+        }
+
+        /* --- Formula Diagram --- */
+        .formula-diagram {
+            background-color: #000;
+            border: 1px solid #374151;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        .formula-title {
+            color: #fcd34d; /* amber-300 */
+            font-weight: 500;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 0.75rem;
+        }
+        .formula-op-box {
+            background-color: #1f2937; /* gray-800 */
+            border: 1px solid #4b5563;
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin: 0.25rem;
+            font-family: 'Roboto Mono', monospace;
+        }
+        .formula-op-box .op-name {
+            font-size: 0.9rem;
+        }
+        .formula-op-box .var-name {
+            font-size: 0.9rem;
+        }
+        .formula-op-box .bin-data {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        .formula-connector {
+            color: #e879f9; /* fuchsia-400 */
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+            text-align: center;
+        }
+        .formula-result {
+            background-color: #166534; /* green-800 */
+            border-color: #a3e635; /* lime-400 */
+        }
+
+        /* --- Aligned Bitwise Calculation (FIXED) --- */
+        .aligned-bits {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: #000;
+            padding: 0.5rem;
+            padding-left: 1.5rem; /* Indent the whole block */
+            border-radius: 4px;
+            border: 1px solid #4b5563;
+            margin-top: 0.5rem;
+        }
+        .bit-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            font-size: 0.8rem;
+        }
+        .bit-row .label {
+            color: #60a5fa;
+            min-width: 80px;
+            text-align: right;
+            font-weight: 500;
+        }
+        .bit-row code {
+            flex-grow: 1;
+            text-align: left;
+            letter-spacing: 0.05em;
+            color: #a3e635;
+        }
+        .bit-op-line {
+            width: 100%;
+            margin: 0.25rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .bit-op-line .label.op {
+            min-width: 80px;
+            text-align: right;
+            color: #e879f9;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .bit-op-line .line-element {
+            flex-grow: 1;
+            border-bottom: 1px solid #e879f9;
+        }
+        .bit-row.result code {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* --- Formula Flow Diagram (UPDATED) --- */
+        .formula-flow-container {
+            margin-top: 0.75rem;
+            padding-left: 1.5rem; /* Space for the main line */
+            border-left: 2px dashed #e879f9; /* Main vertical op line is now DASHED */
+        }
+        .flow-item {
+            position: relative;
+            padding-left: 1.5rem; /* Space for connector */
+            padding-bottom: 1rem;
+        }
+        .flow-item:last-child {
+            padding-bottom: 0;
+        }
+        .flow-item > .formula-op-box, .flow-item > .formula-title {
+            margin-top: 0;
+        }
+        .flow-item-op {
+            position: relative;
+            color: #e879f9; /* fuchsia-400 */
+            font-size: 1.5rem;
+            /* Centering the '+' on the dashed line */
+            margin-left: -0.9rem;
+            margin-top: -0.25rem;
+            margin-bottom: -0.25rem;
+            background: #000;
+            width: 1.7rem;
+            height: 1.7rem;
+            line-height: 1.7rem;
+            text-align: center;
+            border-radius: 50%;
+        }
+
+
+        /* --- Constant Sidebars --- */
+        .constants-sidebar {
+            position: fixed;
+            top: 0; bottom: 0;
+            width: 240px; /* Wider for binary */
+            padding: 1rem;
+            padding-top: 3rem; 
+            background-color: #000;
+            border: 1px solid #374151;
+            font-family: 'Roboto Mono', monospace;
+            overflow-y: auto; /* Enable scrolling for the whole sidebar */
+        }
+        .constants-sidebar.left {
+            left: 0; border-right-width: 2px;
+        }
+        .constants-sidebar.right {
+            right: 0; border-left-width: 2px;
+        }
+        .constants-sidebar h3 {
+            color: #d9f99d; /* lime-200 */
+            font-size: 1.1rem;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .constants-list {
+            /* Let parent handle scrolling */
+        }
+        .constants-list-item {
+            font-size: 0.8rem;
+            padding: 0.25rem;
+            margin-bottom: 0.5rem; /* Increased spacing */
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            word-break: break-all;
+        }
+        .constants-list-item span:first-child {
+            color: #60a5fa; /* blue-400 */
+            display: block;
+        }
+        .constants-list-item span:last-child {
+            color: #a3e635; /* lime-400 */
+            letter-spacing: 0.02em;
+        }
+        /* Generic Highlight */
+        .constants-list-item.highlight { background-color: #22d3ee; } /* cyan-400 */
+        .constants-list-item.highlight span { color: #111827; } /* gray-900 */
+        /* Colored Highlights */
+        .constants-list-item.highlight-blue { background-color: #38bdf8; } /* lightBlue-400 */
+        .constants-list-item.highlight-blue span { color: #111827; }
+        .constants-list-item.highlight-green { background-color: #4ade80; } /* green-400 */
+        .constants-list-item.highlight-green span { color: #111827; }
+        .constants-list-item.highlight-purple { background-color: #c084fc; } /* purple-400 */
+        .constants-list-item.highlight-purple span { color: #111827; }
+        .constants-list-item.highlight-yellow { background-color: #facc15; } /* yellow-400 */
+        .constants-list-item.highlight-yellow span { color: #111827; }
+
+
+        /* --- Bitwise Legend --- */
+        .bitwise-legend h3 {
+             margin-top: 2rem;
+        }
+        .bitwise-table {
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            border-collapse: collapse;
+        }
+        .bitwise-table th, .bitwise-table td {
+            border: 1px solid #374151;
+            padding: 0.25rem;
+        }
+        .bitwise-table th {
+            color: #a5f3fc; /* cyan-200 */
+        }
+        .bitwise-table td {
+            color: #d1d5db; /* gray-300 */
+        }
+        .bitwise-table td.op-result {
+            color: #a3e635; /* lime-400 */
+            font-weight: bold;
+        }
+
+
+        /* Main content margin */
+        .main-container {
+            margin-left: 240px;
+            margin-right: 240px;
+        }
+
+        /* Visual Padding */
+        .padding-viz {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: #000;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+        .padding-block {
+            padding: 0.5rem;
+            border: 1px dashed #4b5563;
+            margin: 0.25rem;
+            border-radius: 4px;
+        }
+        .padding-block h5 {
+            color: #fcd34d; /* amber-300 */
+            font-size: 0.8rem;
+            font-family: 'Roboto Mono', monospace;
+            margin-bottom: 0.25rem;
+        }
+
+        .full-padded-message {
+            margin-top: 1rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.7rem;
+            word-break: break-all;
+            padding: 0.5rem;
+            background-color: #000;
+            border-radius: 4px;
+        }
+        .padded-msg-original { background-color: #1e3a8a; color: #93c5fd; padding: 0.2rem; } /* blue */
+        .padded-msg-one { background-color: #991b1b; color: #fca5a5; padding: 0.2rem; } /* red */
+        .padded-msg-zeros { background-color: #374151; color: #9ca3af; padding: 0.2rem; } /* gray */
+        .padded-msg-len { background-color: #581c87; color: #e9d5ff; padding: 0.2rem; } /* purple */
+
+        /* W Schedule iterative render placeholder */
+        #w-schedule-iterative-placeholder {
+            min-height: 300px; /* Give it space */
+        }
+    </style>
+</head>
+<body class="bg-black text-gray-200 min-h-screen">
+
+    <div class="container mx-auto max-w-6xl main-container">
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold retro-text-header">SHA-256 Binary Visualizer</h1>
+            <p class="text-lg text-gray-400 mt-2">An interactive, step-by-step visualization of the SHA-256 hashing algorithm.</p>
+        </header>
+
+        <!-- Sticky Header Container -->
+        <div class="sticky top-4 z-50 flex justify-center items-start gap-4 mb-8">
+            <!-- Control Bar -->
+            <div id="control-bar" class="control-bar-main">
+                 <button id="reset-btn" class="control-btn reset" title="Reset">RST</button>
+                 <button id="rewind-btn" class="control-btn" title="Back 10 Steps">&laquo;</button>
+                 <button id="prev-btn" class="control-btn" title="Back 1 Step">&lsaquo;</button>
+                 <button id="play-btn" class="control-btn" title="Play">▶</button>
+                 <button id="pause-btn" class="control-btn" title="Pause" style="display: none;">❚❚</button>
+                 <button id="next-btn" class="control-btn" title="Next 1 Step">&rsaquo;</button>
+                 <button id="ff-btn" class="control-btn" title="Next 10 Steps">&raquo;</button>
+                 <button id="final-btn" class="control-btn" title="Jump to End">&raquo;|</button>
+                 <select id="speed-select" class="control-select" title="Play Speed">
+                     <option value="2000">0.5x</option>
+                     <option value="1000" selected>1x</option>
+                     <option value="500">2x</option>
+                     <option value="400">2.5x</option>
+                     <option value="333">3x</option>
+                     <option value="250">4x</option>
+                     <option value="200">5x</option>
+                 </select>
+            </div>
+            
+            <!-- Right side sticky elements -->
+            <div class="flex flex-col gap-2">
+                <!-- Step Counter -->
+                <div id="step-counter" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg w-80 text-center">
+                    <span id="step-counter-text" class="text-lg font-semibold retro-text-header">Step: 0 / 0</span>
+                </div>
+
+                <!-- Input Section -->
+                <div id="input-section" class="bg-gray-900/90 backdrop-blur-sm border border-gray-700 p-3 rounded-lg w-80">
+                    <label for="message-input" class="block text-sm font-medium retro-text-header mb-2">Enter Message:</label>
+                    <textarea id="message-input" class="w-full h-20 p-2 bg-black text-gray-200 border retro-border rounded-md font-mono focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">abc</textarea>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Flowchart Visualization Steps -->
+        <div id="flowchart-container"></div>
+    </div>
+
+    <!-- --- Left Sidebar: Hash State (H), W-Schedule & Bitwise Legend --- -->
+    <div class="constants-sidebar left hidden md:block">
+        <div>
+             <h3>Hash State (H)</h3>
+             <div class="constants-list" id="h-constants-list"></div>
+        </div>
+        <div class="bitwise-legend"></div>
+        <div>
+            <h3 class="mt-4">W Schedule (0-63)</h3>
+            <div class="constants-list" id="w-constants-list"></div>
+        </div>
+    </div>
+
+    <!-- --- Right Sidebar: K Constants --- -->
+    <div class="constants-sidebar right hidden md:block">
+        <h3>K Constants (0-63)</h3>
+        <div class="constants-list" id="k-constants-list"></div>
+    </div>
+
+    <script type="module">
+        // --- SHA-256 Core Implementation ---
+        const Sha256 = {
+            H_initial: [
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+            ],
+            K: [
+                0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+            ],
+            // --- Core Bitwise Operations ---
+            ROTR: (x, n) => (x >>> n) | (x << (32 - n)),
+            SHR: (x, n) => x >>> n,
+            Ch: (x, y, z) => (x & y) ^ (~x & z),
+            Maj: (x, y, z) => (x & y) ^ (x & z) ^ (y & z),
+            S0: (x) => Sha256.ROTR(x, 2) ^ Sha256.ROTR(x, 13) ^ Sha256.ROTR(x, 22),
+            S1: (x) => Sha256.ROTR(x, 6) ^ Sha256.ROTR(x, 11) ^ Sha256.ROTR(x, 25),
+            s0: (x) => Sha256.ROTR(x, 7) ^ Sha256.ROTR(x, 18) ^ Sha256.SHR(x, 3),
+            s1: (x) => Sha256.ROTR(x, 17) ^ Sha256.ROTR(x, 19) ^ Sha256.SHR(x, 10),
+            add: (...args) => args.reduce((acc, val) => (acc + val) >>> 0, 0),
+            
+            // --- Formatting Helpers ---
+            toHex: (n) => (n >>> 0).toString(16).padStart(8, '0'),
+            toBin: (n, bits = 32) => (n >>> 0).toString(2).padStart(bits, '0'),
+            toBinByte: (n) => (n & 0xFF).toString(2).padStart(8, '0'),
+            toBin64: (bigint) => bigint.toString(2).padStart(64, '0'),
+            
+            preprocess: (message) => {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(message);
+                const originalLenBits = BigInt(data.length) * 8n;
+                let k_bytes = (55 - data.length) % 64;
+                if (k_bytes < 0) k_bytes += 64;
+                const totalLength = data.length + 1 + k_bytes + 8;
+                const paddedMsg = new Uint8Array(totalLength);
+                paddedMsg.set(data);
+                paddedMsg[data.length] = 0x80;
+                const view = new DataView(paddedMsg.buffer);
+                view.setBigUint64(totalLength - 8, originalLenBits, false);
+                return paddedMsg;
+            },
+
+            compute: (message) => {
+                const vizData = {
+                    preprocessing: {},
+                    chunks: [],
+                    initialH: [...Sha256.H_initial],
+                    chunkProcessing: [],
+                    finalHash: ""
+                };
+
+                // --- Step 1: Preprocessing ---
+                const encoder = new TextEncoder();
+                const data = encoder.encode(message);
+                const originalByteLength = data.length;
+                const originalBitLength = BigInt(originalByteLength) * 8n;
+                const paddedMsg = Sha256.preprocess(message);
+                let k_bytes = (55 - originalByteLength) % 64;
+                const zeroBytes = k_bytes < 0 ? 64 + k_bytes : k_bytes;
+                
+                vizData.preprocessing = {
+                    messageBinary: Array.from(data).map(b => Sha256.toBinByte(b)).join(' '),
+                    messageByteLength: originalByteLength,
+                    paddingOneBinary: "10000000",
+                    zeroPaddingBytes: zeroBytes,
+                    lengthBinary: Sha256.toBin64(originalBitLength)
+                };
+
+                // --- Step 2: Parsing ---
+                const chunkArray = [];
+                for (let i = 0; i < paddedMsg.length; i += 64) {
+                    chunkArray.push(paddedMsg.slice(i, i + 64));
+                    vizData.chunks.push(Array.from(paddedMsg.slice(i, i+64)).map(b => Sha256.toBinByte(b)).join(''));
+                }
+
+                let H = [...vizData.initialH];
+                
+                // --- Steps 4, 5, 6: Process each chunk ---
+                for (let i = 0; i < chunkArray.length; i++) {
+                    const chunk = chunkArray[i];
+                    const view = new DataView(chunk.buffer);
+                    const W = new Uint32Array(64);
+                    
+                    const chunkData = {
+                        w_schedule: { initial: [], extended_calcs: [], full: [] },
+                        compression: { initialV: [...H], rounds: [], finalV: [] },
+                        hashUpdate: { oldH: [...H], finalV: [], newH: [] }
+                    };
+
+                    for (let t = 0; t < 16; t++) {
+                        W[t] = view.getUint32(t * 4, false);
+                        chunkData.w_schedule.initial.push(W[t]);
+                    }
+                    
+                    for (let t = 16; t < 64; t++) {
+                        const s1_w14 = W[t-2], w7_val = W[t-7], s0_w1 = W[t-15], w16_val = W[t-16];
+                        const s1_val = Sha256.s1(s1_w14), s0_val = Sha256.s0(s0_w1);
+                        W[t] = Sha256.add(s1_val, w7_val, s0_val, w16_val);
+                        
+                        chunkData.w_schedule.extended_calcs.push({
+                            s1_in: s1_w14, s1_rotr17: Sha256.ROTR(s1_w14, 17), s1_rotr19: Sha256.ROTR(s1_w14, 19), s1_shr10: Sha256.SHR(s1_w14, 10), s1_xor1: Sha256.ROTR(s1_w14, 17) ^ Sha256.ROTR(s1_w14, 19), s1_val,
+                            w7_val,
+                            s0_in: s0_w1, s0_rotr7: Sha256.ROTR(s0_w1, 7), s0_rotr18: Sha256.ROTR(s0_w1, 18), s0_shr3: Sha256.SHR(s0_w1, 3), s0_xor1: Sha256.ROTR(s0_w1, 7) ^ Sha256.ROTR(s0_w1, 18), s0_val,
+                            w16_val,
+                            result: W[t]
+                        });
+                    }
+                    chunkData.w_schedule.full = Array.from(W);
+
+                    let [a, b, c, d, e, f, g, h] = H;
+                    chunkData.compression.initialV = [a,b,c,d,e,f,g,h];
+                    
+                    for (let t = 0; t < 64; t++) {
+                        const S1 = Sha256.S1(e), ch = Sha256.Ch(e, f, g);
+                        const temp1 = Sha256.add(h, S1, ch, Sha256.K[t], W[t]);
+                        const S0 = Sha256.S0(a), maj = Sha256.Maj(a, b, c);
+                        const temp2 = Sha256.add(S0, maj);
+                        
+                        const roundData = { 
+                            t, in_a: a, in_b: b, in_c: c, in_d: d, in_e: e, in_f: f, in_g: g, in_h: h, k_t: Sha256.K[t], w_t: W[t],
+                            S1_in_e: e, S1_rotr6: Sha256.ROTR(e, 6), S1_rotr11: Sha256.ROTR(e, 11), S1_rotr25: Sha256.ROTR(e, 25), S1_xor1: Sha256.ROTR(e, 6) ^ Sha256.ROTR(e, 11), S1,
+                            ch_in_e: e, ch_in_f: f, ch_in_g: g, ch_e_and_f: e & f, ch_not_e: ~e, ch_not_e_and_g: ~e & g, ch,
+                            temp1,
+                            S0_in_a: a, S0_rotr2: Sha256.ROTR(a, 2), S0_rotr13: Sha256.ROTR(a, 13), S0_rotr22: Sha256.ROTR(a, 22), S0_xor1: Sha256.ROTR(a, 2) ^ Sha256.ROTR(a, 13), S0,
+                            maj_in_a: a, maj_in_b: b, maj_in_c: c, maj_a_and_b: a & b, maj_a_and_c: a & c, maj_b_and_c: b & c, maj_xor1: (a & b) ^ (a & c), maj,
+                            temp2, out_a: 0, out_b: 0, out_c: 0, out_d: 0, out_e: 0, out_f: 0, out_g: 0, out_h: 0,
+                        };
+                        h = g; g = f; f = e; e = Sha256.add(d, temp1);
+                        d = c; c = b; b = a; a = Sha256.add(temp1, temp2);
+                        roundData.out_a = a; roundData.out_b = b; roundData.out_c = c; roundData.out_d = d;
+                        roundData.out_e = e; roundData.out_f = f; roundData.out_g = g; roundData.out_h = h;
+                        chunkData.compression.rounds.push(roundData);
+                    }
+                    chunkData.compression.finalV = [a, b, c, d, e, f, g, h];
+
+                    H = H.map((val, idx) => Sha256.add(val, chunkData.compression.finalV[idx]));
+                    chunkData.hashUpdate.finalV = chunkData.compression.finalV;
+                    chunkData.hashUpdate.newH = [...H];
+                    vizData.chunkProcessing.push(chunkData);
+                }
+
+                vizData.finalHash = H.map(Sha256.toHex).join('');
+                return vizData;
+            }
+        };
+
+        // --- Main App & Visualization Logic ---
+        const Sha2_App = {
+            masterSteps: [],
+            currentMasterStep: -1,
+            currentChunkRendered: -1,
+            playInterval: null,
+            playSpeed: 1000,
+            vizData: null,
+            debounceTimeout: null,
+            
+            init() {
+                // Event listener for automatic updates on input
+                (document.getElementById('message-input')).addEventListener('input', () => this.handleInput());
+                // Control Bar Listeners
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetVisualization(false));
+                document.getElementById('prev-btn').addEventListener('click', () => { this.pauseMaster(); this.stepMaster(-1); });
+                document.getElementById('next-btn').addEventListener('click', () => { this.pauseMaster(); this.stepMaster(1); });
+                document.getElementById('rewind-btn').addEventListener('click', () => { this.pauseMaster(); this.stepMaster(-10); });
+                document.getElementById('ff-btn').addEventListener('click', () => { this.pauseMaster(); this.stepMaster(10); });
+                document.getElementById('final-btn').addEventListener('click', () => this.jumpToEnd());
+                document.getElementById('play-btn').addEventListener('click', () => this.playMaster());
+                document.getElementById('pause-btn').addEventListener('click', () => this.pauseMaster());
+                document.getElementById('speed-select').addEventListener('change', (e) => this.changeSpeed(e));
+                this.populateSidebars();
+                this.populateBitwiseLegend();
+                this.runVisualization();
+            },
+            
+            debounce(func, delay) {
+                clearTimeout(this.debounceTimeout);
+                this.debounceTimeout = setTimeout(func, delay);
+            },
+
+            handleInput() {
+                this.debounce(() => this.runVisualization(true), 500);
+            },
+
+            setControlsDisabled(disabled) {
+                (document.getElementById('rewind-btn')).disabled = disabled;
+                (document.getElementById('prev-btn')).disabled = disabled;
+                (document.getElementById('play-btn')).disabled = disabled;
+                (document.getElementById('pause-btn')).disabled = disabled;
+                (document.getElementById('next-btn')).disabled = disabled;
+                (document.getElementById('ff-btn')).disabled = disabled;
+                (document.getElementById('final-btn')).disabled = disabled;
+                (document.getElementById('speed-select')).disabled = disabled;
+                (document.getElementById('reset-btn')).disabled = false; 
+            },
+            
+            updateControlState() {
+                this.setControlsDisabled(false);
+                const isAtStart = this.currentMasterStep <= 0;
+                const isAtEnd = this.currentMasterStep >= this.masterSteps.length - 1;
+                (document.getElementById('prev-btn')).disabled = isAtStart;
+                (document.getElementById('rewind-btn')).disabled = this.currentMasterStep < 10;
+                (document.getElementById('next-btn')).disabled = isAtEnd;
+                (document.getElementById('ff-btn')).disabled = this.currentMasterStep >= this.masterSteps.length - 10;
+                (document.getElementById('final-btn')).disabled = isAtEnd;
+                (document.getElementById('play-btn')).disabled = isAtEnd;
+            },
+            
+            updateStepCounter() {
+                const textEl = document.getElementById('step-counter-text');
+                if (textEl) {
+                    textEl.textContent = `Step: ${this.currentMasterStep + 1} / ${this.masterSteps.length}`;
+                }
+            },
+
+            playMaster() {
+                if (this.playInterval) return;
+                document.getElementById('play-btn').style.display = 'none';
+                document.getElementById('pause-btn').style.display = 'flex';
+                const playStep = () => {
+                    if (this.currentMasterStep >= this.masterSteps.length - 1) {
+                        this.pauseMaster();
+                    } else {
+                        this.stepMaster(1);
+                    }
+                };
+                playStep(); // Execute first step immediately
+                this.playInterval = setInterval(playStep, this.playSpeed);
+            },
+            
+            pauseMaster() {
+                document.getElementById('play-btn').style.display = 'flex';
+                document.getElementById('pause-btn').style.display = 'none';
+                clearInterval(this.playInterval);
+                this.playInterval = null;
+            },
+
+            jumpToEnd() {
+                this.pauseMaster();
+                if (this.masterSteps.length > 0) this.setMasterStep(this.masterSteps.length - 1);
+            },
+            
+            changeSpeed(e) {
+                this.playSpeed = parseInt(e.target.value, 10);
+                if (this.playInterval) {
+                    this.pauseMaster();
+                    this.playMaster();
+                }
+            },
+            
+            populateSidebars() {
+                document.getElementById('h-constants-list').innerHTML = Sha256.H_initial.map((val, i) => `
+                    <div class="constants-list-item" id="H-const-${i}">
+                        <span>H${i}:</span>
+                        <span>${Sha256.toBin(val)}</span>
+                    </div>`).join('');
+                document.getElementById('k-constants-list').innerHTML = Sha256.K.map((val, i) => `
+                    <div class="constants-list-item" id="K-const-${i}">
+                        <span>K${i}:</span>
+                        <span>${Sha256.toBin(val)}</span>
+                    </div>`).join('');
+            },
+            
+            populateBitwiseLegend() {
+                document.querySelector('.bitwise-legend').innerHTML = `
+                    <h3>Bitwise Ops</h3><p class="text-xs text-gray-400 mb-2">Operations are performed on 32-bit words.</p>
+                    <h4 class="text-sm retro-text-header mt-4">NOT (~)</h4><table class="bitwise-table"><thead><tr><th>A</th><th>~A</th></tr></thead><tbody><tr><td>0</td><td class="op-result">1</td></tr><tr><td>1</td><td class="op-result">0</td></tr></tbody></table>
+                    <h4 class="text-sm retro-text-header mt-4">AND (&amp;)</h4><table class="bitwise-table"><thead><tr><th>A</th><th>B</th><th>A &amp; B</th></tr></thead><tbody><tr><td>0</td><td>0</td><td class="op-result">0</td></tr><tr><td>0</td><td>1</td><td class="op-result">0</td></tr><tr><td>1</td><td>0</td><td class="op-result">0</td></tr><tr><td>1</td><td>1</td><td class="op-result">1</td></tr></tbody></table>
+                    <h4 class="text-sm retro-text-header mt-4">XOR (^)</h4><table class="bitwise-table"><thead><tr><th>A</th><th>B</th><th>A ^ B</th></tr></thead><tbody><tr><td>0</td><td>0</td><td class="op-result">0</td></tr><tr><td>0</td><td>1</td><td class="op-result">1</td></tr><tr><td>1</td><td>0</td><td class="op-result">1</td></tr><tr><td>1</td><td>1</td><td class="op-result">0</td></tr></tbody></table>`;
+            },
+            
+            updateHashSidebar(H_array, highlight = false) {
+                H_array.forEach((val, i) => {
+                    const el = document.getElementById(`H-const-${i}`);
+                    if (el) {
+                        el.querySelector('span:last-child').textContent = Sha256.toBin(val);
+                        if (highlight) {
+                            el.classList.add('highlight');
+                            setTimeout(() => el.classList.remove('highlight'), 1000);
+                        }
+                    }
+                });
+            },
+
+            runVisualization(preserveStep = false) {
+                const message = (document.getElementById('message-input')).value;
+                const oldStep = this.currentMasterStep;
+                this.pauseMaster();
+                this.resetVisualization(true);
+                this.vizData = Sha256.compute(message);
+                this.buildPlaceholders();
+                this.buildMasterSteps();
+                this.currentMasterStep = -1;
+                const targetStep = preserveStep ? Math.min(oldStep, this.masterSteps.length - 1) : 0;
+                this.setMasterStep(targetStep);
+            },
+            
+            buildPlaceholders() {
+                const p = this.vizData.preprocessing;
+                this.addFlowBlock('stage-input', `<h3>Input Message</h3><div class="p-2 bg-black rounded mt-1 font-mono break-words bin-data">${p.messageBinary || '(empty)'}</div>`);
+                this.addFlowBlock('stage-padding', `<h3>1. Pre-processing (Padding)</h3><div class="padding-viz"><div class="padding-block flex-grow"><h5>Message (${p.messageByteLength} bytes)</h5><div class="bin-data small">${p.messageBinary || '(empty)'}</div></div><div class="padding-block"><h5>'1' Bit + Padding to Byte (0x80)</h5><div class="bin-data small">${p.paddingOneBinary}</div></div><div class="padding-block"><h5>Zero Padding (${p.zeroPaddingBytes} bytes)</h5><div class="bin-data small zero-padding-data">${'0'.repeat(p.zeroPaddingBytes * 8)}</div></div><div class="padding-block w-full"><h5>Length (64-bit)</h5><div class="bin-data small">${p.lengthBinary}</div></div></div><h4 class="mt-4 retro-text-header">Full Padded Message Block</h4><div class="full-padded-message"><span class="padded-msg-original">${p.messageBinary || ' '}</span><span class="padded-msg-one">${p.paddingOneBinary}</span><span class="padded-msg-zeros">${'0'.repeat(p.zeroPaddingBytes * 8)}</span><span class="padded-msg-len">${p.lengthBinary}</span></div>`);
+                this.addFlowBlock('stage-chunking', `<h3>2. Parse into 512-bit Chunks</h3><div class="space-y-4">${this.vizData.chunks.map((chunk, i) => `<div><strong class="retro-text-header font-mono">Chunk ${i+1}:</strong><div class="p-2 bg-black rounded mt-1 font-mono text-sm break-words bin-data small">${chunk}</div></div>`).join('')}</div>`);
+                const hVars = {};
+                this.vizData.initialH.forEach((val, i) => hVars[this.H_NAMES[i]] = val);
+                this.addFlowBlock('stage-init-h', `<h3>3. Set Initial Hash State (H)</h3>${this.getRegisterGridHTML(hVars, true)}`);
+
+                this.vizData.chunkProcessing.forEach((chunkData, i) => {
+                    const chunkId = `chunk-${i+1}`;
+                    const wScheduleHTML = `<div class="internal-stage" id="stage-w-${chunkId}"><h5>4. Message Schedule (W) for Chunk ${i+1}</h5><div class="grid grid-cols-1 md:grid-cols-2 gap-1 font-mono text-sm mb-4" id="w-schedule-initial-${chunkId}"></div><div id="w-schedule-iterative-placeholder-${chunkId}"></div></div>`;
+                    const compressionHTML = `<div class="internal-stage" id="stage-compress-${chunkId}"><h5>5. Compression Loop (64 Rounds) for Chunk ${i+1}</h5><p class="text-center font-mono text-lg retro-text-header" id="compress-round-display-${chunkId}">Round ? / 63</p><div id="compression-content-placeholder-${chunkId}"></div></div>`;
+                    const updateHTML = `<div class="internal-stage" id="stage-update-${chunkId}"><h5>6. Update Hash State (H) for Chunk ${i+1}</h5><div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 font-mono text-sm update-hash-grid" id="update-hash-placeholder-${chunkId}"></div></div>`;
+                    this.addFlowBlock(chunkId, `<h4>Processing Chunk ${i+1}</h4><div class="internal-flow mt-4">${wScheduleHTML}${compressionHTML}${updateHTML}</div>`);
+                });
+                this.addFlowBlock('stage-final-hash', `<h3>7. Final Hash Digest</h3><div id="final-hash-registers-placeholder"></div><div class="p-3 bg-black rounded mt-2 font-mono text-xl text-green-400 break-words" id="final-hash-hex"></div>`);
+            },
+            
+            buildMasterSteps() {
+                this.masterSteps = [];
+                const addStep = (id, uiTarget, onActivate, onDeactivate = (isForward) => {}) => {
+                    let chunkIndex = -1;
+                    if (id.includes('chunk-')) {
+                        const num = parseInt(id.split('-').pop());
+                        if (!isNaN(num)) chunkIndex = num - 1;
+                    }
+                    this.masterSteps.push({ id, uiTarget, onActivate, onDeactivate, chunkIndex });
+                };
+
+                addStep('stage-input', 'stage-input', () => this.activateMajorStep('stage-input'));
+                addStep('stage-padding', 'stage-padding', () => this.activateMajorStep('stage-padding'));
+                addStep('stage-chunking', 'stage-chunking', () => this.activateMajorStep('stage-chunking'));
+                addStep('stage-init-h', 'stage-init-h',
+                    () => { this.activateMajorStep('stage-init-h'); for (let i = 0; i < 8; i++) document.getElementById(`H-const-${i}`)?.classList.add('highlight'); },
+                    (isForward) => { for (let i = 0; i < 8; i++) document.getElementById(`H-const-${i}`)?.classList.remove('highlight'); }
+                );
+
+                this.vizData.chunkProcessing.forEach((chunkData, i) => {
+                    const chunkId = `chunk-${i+1}`;
+                    addStep(`activate-${chunkId}`, chunkId, () => this.activateMajorStep(chunkId));
+
+                    addStep(`render-w-initial-${chunkId}`, chunkId, 
+                        () => {
+                            this.activateMajorStep(chunkId, `stage-w-${chunkId}`);
+                            document.getElementById(`w-schedule-initial-${chunkId}`).innerHTML = chunkData.w_schedule.initial.map((w, t) => `<div><span class="var-name">W[${t}]</span> = <span class="bin-data small">${Sha256.toBin(w)}</span></div>`).join('');
+                            document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`).innerHTML = '<p class="retro-text-dim text-center">... W[16-63] loading ...</p>';
+                        },
+                        (isForward) => {
+                            if (!isForward) {
+                                document.getElementById(`w-schedule-initial-${chunkId}`).innerHTML = '';
+                                document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`).innerHTML = '';
+                            }
+                        }
+                    );
+
+                    for (let t = 0; t < 48; t++) {
+                        const wIndex = t + 16;
+                        const wCalcData = chunkData.w_schedule.extended_calcs[t];
+                        addStep(`render-w-${wIndex}-${chunkId}`, chunkId, 
+                            () => {
+                                this.activateMajorStep(chunkId, `stage-w-${chunkId}`);
+                                this.highlightW([{ i: wIndex - 2, c: 'blue' }, { i: wIndex - 7, c: 'green' }, { i: wIndex - 15, c: 'purple' }, { i: wIndex - 16, c: 'yellow' }]);
+                                document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`).innerHTML = `<div class="formula-diagram"><div class="formula-title"><span class="var-name">W[${wIndex}]</span> = <span class="op-name">s1</span>(W[${wIndex-2}]) + W[${wIndex-7}] + <span class="op-name">s0</span>(W[${wIndex-15}]) + W[${wIndex-16}]</div><div class="formula-flow-container"><div class="flow-item">${this.getExpandedFuncHTML('s1', `W[${wIndex-2}]`, wCalcData.s1_in, {rotr1:17, rotr2:19, shr3:10}, {r1:wCalcData.s1_rotr17, r2:wCalcData.s1_rotr19, s3:wCalcData.s1_shr10}, wCalcData.s1_xor1, wCalcData.s1_val)}</div><div class="flow-item-op">+</div><div class="flow-item"><div class="formula-op-box"><span class="var-name">W[${wIndex-7}]</span><span class="bin-data small">${Sha256.toBin(wCalcData.w7_val)}</span></div></div><div class="flow-item-op">+</div><div class="flow-item">${this.getExpandedFuncHTML('s0', `W[${wIndex-15}]`, wCalcData.s0_in, {rotr1:7, rotr2:18, shr3:3}, {r1:wCalcData.s0_rotr7, r2:wCalcData.s0_rotr18, s3:wCalcData.s0_shr3}, wCalcData.s0_xor1, wCalcData.s0_val)}</div><div class="flow-item-op">+</div><div class="flow-item"><div class="formula-op-box"><span class="var-name">W[${wIndex-16}]</span><span class="bin-data small">${Sha256.toBin(wCalcData.w16_val)}</span></div></div></div><div class="formula-op-box formula-result mt-4">${this.getFinalAdditionHTML('W[' + wIndex + ']', [{l:'s1()',v:wCalcData.s1_val},{l:`W[${wIndex-7}]`,v:wCalcData.w7_val},{l:'s0()',v:wCalcData.s0_val},{l:`W[${wIndex-16}]`,v:wCalcData.w16_val}], wCalcData.result)}</div></div>`;
+                                const el = document.getElementById(`W-const-${wIndex}`);
+                                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 
+                            (isForward) => {
+                                this.highlightW();
+                                if (!isForward) {
+                                    document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`).innerHTML = '';
+                                }
+                            }
+                        );
+                    }
+
+                    addStep(`init-compress-${chunkId}`, chunkId, 
+                        () => {
+                            this.activateMajorStep(chunkId, `stage-compress-${chunkId}`);
+                            document.getElementById(`compress-round-display-${chunkId}`).innerText = 'Round 0 / 63';
+                            document.getElementById(`compression-content-placeholder-${chunkId}`).innerHTML = this.getHtoVLinkHTML(chunkData.hashUpdate.oldH, chunkData.compression.initialV);
+                        },
+                        (isForward) => {
+                            if (!isForward) {
+                                document.getElementById(`compression-content-placeholder-${chunkId}`).innerHTML = '';
+                            }
+                        }
+                    );
+
+                    for (let t = 0; t < 64; t++) {
+                        const roundData = chunkData.compression.rounds[t];
+                        addStep(`compress-round-${t}-${chunkId}`, chunkId,
+                            () => {
+                                this.activateMajorStep(chunkId, `stage-compress-${chunkId}`);
+                                this.highlightK(t);
+                                this.highlightW([{ i: t }]);
+                                document.getElementById(`compress-round-display-${chunkId}`).innerText = `Round ${t} / 63`;
+                                const rInVars = {}, rOutVars = {};
+                                this.V_NAMES.forEach(v => { rInVars[v] = roundData[`in_${v}`]; rOutVars[v] = roundData[`out_${v}`]; });
+                                document.getElementById(`compression-content-placeholder-${chunkId}`).innerHTML = `<h5 class="mt-4 !mb-2 !text-base">Input Registers (a-h)</h5><div>${this.getRegisterGridHTML(rInVars)}</div><div class="mt-4 space-y-2">${this.getFormulaDiagramsHTML(roundData)}</div><h5 class="mt-4 !mb-2 !text-base">Output Registers (a-h)</h5><div>${this.getRegisterGridHTML(rOutVars)}</div>`;
+                            }, 
+                            (isForward) => { 
+                                this.highlightK(-1); 
+                                this.highlightW();
+                                if (!isForward) {
+                                    document.getElementById(`compression-content-placeholder-${chunkId}`).innerHTML = '';
+                                }
+                            }
+                        );
+                    }
+                    
+                    addStep(`update-hash-${chunkId}`, chunkId,
+                        () => {
+                            this.activateMajorStep(chunkId, `stage-update-${chunkId}`);
+                            const update = chunkData.hashUpdate;
+                            document.getElementById(`update-hash-placeholder-${chunkId}`).innerHTML = this.H_NAMES.map((name, i) => this.getFinalAdditionHTML(`${name}'`, [{ l: name, v: update.oldH[i] }, { l: this.V_NAMES[i], v: update.finalV[i] }], update.newH[i])).join('');
+                            document.querySelector('.constants-sidebar.left')?.scrollTo({ top: 0, behavior: 'smooth' });
+                            this.updateHashSidebar(chunkData.hashUpdate.newH, true);
+                        },
+                        (isForward) => {
+                            if (!isForward) {
+                                document.getElementById(`update-hash-placeholder-${chunkId}`).innerHTML = '';
+                            }
+                        }
+                    );
+                }); 
+                addStep('stage-final-hash', 'stage-final-hash', 
+                    () => {
+                        this.activateMajorStep('stage-final-hash');
+                        const finalH = this.vizData.chunkProcessing.length > 0 ? this.vizData.chunkProcessing.slice(-1)[0].hashUpdate.newH : this.vizData.initialH;
+                        const finalHVars = {};
+                        finalH.forEach((val, i) => finalHVars[this.H_NAMES[i]] = val);
+                        document.getElementById('final-hash-registers-placeholder').innerHTML = this.getRegisterGridHTML(finalHVars, true);
+                        document.getElementById('final-hash-hex').innerHTML = this.vizData.finalHash;
+                    },
+                    (isForward) => {
+                        if (!isForward) {
+                            document.getElementById('final-hash-registers-placeholder').innerHTML = '';
+                            document.getElementById('final-hash-hex').innerHTML = '';
+                        }
+                    }
+                );
+            },
+            
+            resetVisualization(soft = false) {
+                this.pauseMaster();
+                document.getElementById('flowchart-container').innerHTML = '';
+                document.getElementById('w-constants-list').innerHTML = '';
+                this.masterSteps = [];
+                this.currentMasterStep = -1;
+                this.currentChunkRendered = -1;
+                this.updateStepCounter();
+                if (!soft) {
+                    (document.getElementById('message-input')).value = 'abc';
+                    this.runVisualization();
+                }
+                this.highlightK(-1);
+                this.highlightW();
+                this.populateSidebars(); 
+            },
+
+            prepareChunkUI(chunkIndex) {
+                if (chunkIndex < 0 || chunkIndex === this.currentChunkRendered) return;
+                const chunkData = this.vizData.chunkProcessing[chunkIndex];
+                if (!chunkData) return;
+                document.getElementById('w-constants-list').innerHTML = chunkData.w_schedule.full.map((val, t) => `<div class="constants-list-item" id="W-const-${t}"><span>W[${t}]:</span><span>${Sha256.toBin(val)}</span></div>`).join('');
+                this.currentChunkRendered = chunkIndex;
+            },
+            
+            stepMaster(dir) {
+                this.setMasterStep(this.currentMasterStep + dir);
+            },
+            
+            setMasterStep(stepIndex) {
+                stepIndex = Math.max(0, Math.min(stepIndex, this.masterSteps.length - 1));
+                if (stepIndex === this.currentMasterStep) return;
+
+                const oldStep = this.masterSteps[this.currentMasterStep];
+                const newStep = this.masterSteps[stepIndex];
+                const isJump = Math.abs(stepIndex - this.currentMasterStep) > 1;
+
+                if (isJump) {
+                    // Rebuild path for jumps
+                    this.performFullRebuild(stepIndex);
+                } else {
+                    // Fast path for single steps
+                    const isForward = stepIndex > this.currentMasterStep;
+                    if (isForward) {
+                         if (oldStep && oldStep.onDeactivate) {
+                            // Don't deactivate on forward, we build up
+                         }
+                    } else {
+                         if (oldStep && oldStep.onDeactivate) {
+                             oldStep.onDeactivate(isForward);
+                         }
+                    }
+                    this.currentMasterStep = stepIndex;
+                    if (newStep) {
+                        this.prepareChunkUI(newStep.chunkIndex);
+                        if (newStep.onActivate) {
+                            newStep.onActivate();
+                        }
+                    }
+                    this.updateFlowchartVisibility(this.currentMasterStep);
+                }
+
+                // These are common to both paths
+                this.updateControlState();
+                this.updateStepCounter();
+            },
+
+            performFullRebuild(stepIndex) {
+                const targetStep = this.masterSteps[stepIndex];
+                if (!targetStep) return;
+
+                // 1. Hard reset of all dynamic UI content. This is the crucial fix.
+                // This ensures no state from a "future" step can possibly remain.
+                this.vizData.chunkProcessing.forEach((_, i) => {
+                    const chunkId = `chunk-${i+1}`;
+                    const wInitial = document.getElementById(`w-schedule-initial-${chunkId}`);
+                    if (wInitial) wInitial.innerHTML = '';
+                    const wIterative = document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`);
+                    if (wIterative) wIterative.innerHTML = '';
+                    const compressionContent = document.getElementById(`compression-content-placeholder-${chunkId}`);
+                    if (compressionContent) compressionContent.innerHTML = '';
+                    const compressionDisplay = document.getElementById(`compress-round-display-${chunkId}`);
+                    if (compressionDisplay) compressionDisplay.innerText = 'Round ? / 63';
+                    const updateHash = document.getElementById(`update-hash-placeholder-${chunkId}`);
+                    if (updateHash) updateHash.innerHTML = '';
+                });
+                const finalHashRegisters = document.getElementById('final-hash-registers-placeholder');
+                if (finalHashRegisters) finalHashRegisters.innerHTML = '';
+                const finalHashHex = document.getElementById('final-hash-hex');
+                if (finalHashHex) finalHashHex.innerHTML = '';
+
+                // 2. Set the current step and update sidebars to match this point in time.
+                this.currentMasterStep = stepIndex;
+                this.updateSidebarsForStep(targetStep);
+                this.highlightK(-1);
+                this.highlightW();
+
+                // 3. Replay all `onActivate` functions from the beginning up to the target step.
+                // This rebuilds the UI state from scratch, guaranteeing correctness.
+                for (let i = 0; i <= stepIndex; i++) {
+                    const step = this.masterSteps[i];
+                    if (step && step.onActivate) {
+                        step.onActivate();
+                    }
+                }
+                
+                // 4. Update visibility of flowchart stages.
+                this.updateFlowchartVisibility(stepIndex);
+            },
+
+            updateSidebarsForStep(targetStep) {
+                const chunkIndex = targetStep.chunkIndex;
+
+                // Update H sidebar
+                let hState;
+                if (chunkIndex > 0 && this.vizData.chunkProcessing[chunkIndex - 1]) {
+                    // H state is the result of the previous chunk
+                    hState = this.vizData.chunkProcessing[chunkIndex - 1].hashUpdate.newH;
+                } else {
+                    // Before first chunk, or if there are no chunks, it's the initial H
+                    hState = this.vizData.initialH;
+                }
+                this.updateHashSidebar(hState);
+
+                // Update W sidebar (prepareChunkUI does this)
+                if (chunkIndex > -1) {
+                    this.prepareChunkUI(chunkIndex);
+                } else {
+                    // Not in a chunk processing step, clear W schedule and reset render tracking
+                    document.getElementById('w-constants-list').innerHTML = '';
+                    this.currentChunkRendered = -1;
+                }
+            },
+
+            renderFinalStateForChunk(chunkIndex) {
+                const chunkData = this.vizData.chunkProcessing[chunkIndex];
+                const chunkId = `chunk-${chunkIndex+1}`;
+
+                // Final W-Schedule state
+                document.getElementById(`w-schedule-initial-${chunkId}`).innerHTML = chunkData.w_schedule.initial.map((w, t) => `<div><span class="var-name">W[${t}]</span> = <span class="bin-data small">${Sha256.toBin(w)}</span></div>`).join('');
+                const wPlaceholder = document.getElementById(`w-schedule-iterative-placeholder-${chunkId}`);
+                if (wPlaceholder && chunkData.w_schedule.extended_calcs.length > 0) {
+                    const wIndex = 63;
+                    const wCalcData = chunkData.w_schedule.extended_calcs[wIndex - 16];
+                    wPlaceholder.innerHTML = `<div class="formula-diagram"><div class="formula-title"><span class="var-name">W[${wIndex}]</span> = ...</div><div class="formula-op-box formula-result mt-4">${this.getFinalAdditionHTML('W[' + wIndex + ']', [{l:'s1()',v:wCalcData.s1_val},{l:`W[${wIndex-7}]`,v:wCalcData.w7_val},{l:'s0()',v:wCalcData.s0_val},{l:`W[${wIndex-16}]`,v:wCalcData.w16_val}], wCalcData.result)}</div></div>`;
+                }
+
+                // Final Compression state
+                document.getElementById(`compress-round-display-${chunkId}`).innerText = `Round 63 / 63`;
+                const compressionPlaceholder = document.getElementById(`compression-content-placeholder-${chunkId}`);
+                if (compressionPlaceholder && chunkData.compression.rounds.length > 0) {
+                    const roundData = chunkData.compression.rounds[63];
+                    const rOutVars = {};
+                    this.V_NAMES.forEach(v => { rOutVars[v] = roundData[`out_${v}`]; });
+                    compressionPlaceholder.innerHTML = `<h5 class="mt-4 !mb-2 !text-base">Final Output Registers</h5><div>${this.getRegisterGridHTML(rOutVars)}</div>`;
+                }
+
+                // Final Hash Update state
+                const updatePlaceholder = document.getElementById(`update-hash-placeholder-${chunkId}`);
+                if (updatePlaceholder) {
+                    const update = chunkData.hashUpdate;
+                    updatePlaceholder.innerHTML = this.H_NAMES.map((name, j) => this.getFinalAdditionHTML(`${name}'`, [{ l: name, v: update.oldH[j] }, { l: this.V_NAMES[j], v: update.finalV[j] }], update.newH[j])).join('');
+                }
+            },
+
+            updateFlowchartVisibility(activeIndex) {
+                const visibleTargets = new Set();
+                for (let i = 0; i <= activeIndex; i++) {
+                    if (this.masterSteps[i]) visibleTargets.add(this.masterSteps[i].uiTarget);
+                }
+                document.querySelectorAll('.flow-stage').forEach(el => {
+                    const arrow = document.getElementById(`arrow-${el.id}`);
+                    if (visibleTargets.has(el.id)) {
+                        el.classList.add('visible');
+                        if (arrow) arrow.classList.add('visible');
+                    } else {
+                        el.classList.remove('visible', 'active');
+                        if (arrow) arrow.classList.remove('visible');
+                    }
+                });
+            },
+            
+            activateMajorStep(majorId, internalId = null) {
+                document.querySelectorAll('.flow-stage, .internal-stage').forEach(el => el.classList.remove('active', 'retro-border-active', 'retro-shadow-active'));
+                const majorEl = document.getElementById(majorId);
+                if (!majorEl) return;
+                majorEl.classList.add('active');
+                if (internalId) {
+                    const internalEl = document.getElementById(internalId);
+                    if(internalEl) internalEl.classList.add('retro-border-active', 'retro-shadow-active');
+                }
+            },
+            
+            highlightK(round) {
+                document.querySelectorAll('#k-constants-list .constants-list-item.highlight').forEach(el => el.classList.remove('highlight'));
+                if (round >= 0) {
+                    const kEl = document.getElementById(`K-const-${round}`);
+                    if (kEl) {
+                        kEl.classList.add('highlight');
+                        kEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            },
+            
+            highlightW(highlights = []) {
+                document.querySelectorAll('#w-constants-list .constants-list-item').forEach(el => el.className = 'constants-list-item');
+                highlights.forEach(h => {
+                    const wEl = document.getElementById(`W-const-${h.i}`);
+                    if (wEl) {
+                        wEl.classList.add(h.c ? `highlight-${h.c}` : 'highlight');
+                        if (highlights.length === 1) wEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            },
+            
+            // --- HTML Helpers ---
+            H_NAMES: ['H0', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7'],
+            V_NAMES: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+
+            addFlowBlock(id, content) {
+                const container = document.getElementById('flowchart-container');
+                if (container.childElementCount > 0) {
+                    const arrow = Object.assign(document.createElement('div'), { className: 'flow-arrow', id: `arrow-${id}`, innerHTML: '&darr;' });
+                    container.appendChild(arrow);
+                }
+                container.appendChild(Object.assign(document.createElement('div'), { className: 'flow-stage', id, innerHTML: content }));
+            },
+
+            getRegisterGridHTML(vars, small = false) {
+                return `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 font-mono">${Object.entries(vars).map(([name, value]) => `<div><span class="var-name">${name}</span> = <span class="bin-data ${small ? 'small' : ''}">${Sha256.toBin(value)}</span></div>`).join('')}</div>`;
+            },
+            
+            getHtoVLinkHTML(hArray, vArray) {
+                return `<div class="h-v-link-grid">${this.H_NAMES.map((h, i) => `<div class="text-right"><span class="var-name">${h}</span><span class="bin-data small">${Sha256.toBin(hArray[i])}</span></div><div class="link-arrow">&rArr;</div><div class="text-left"><span class="var-name">${this.V_NAMES[i]}</span><span class="bin-data small">${Sha256.toBin(vArray[i])}</span></div>`).join('')}</div>`;
+            },
+
+            renderBinary(value, opType, bits) {
+                const binStr = Sha256.toBin(value);
+                if (!opType || !bits || bits <= 0 || bits >= 32) return this.renderBinarySimple(value);
+                const spans = binStr.split('').map((char, index) => `<span class="${(opType === 'rotr' || opType === 'shr') && index < bits ? 'highlighted-bits' : ''}">${char}</span>`).join('');
+                return `<code class="bit-string-container">${spans}</code>`;
+            },
+
+            renderBinarySimple: (value) => `<code class="bit-string-container">${Sha256.toBin(value).split('').map(char => `<span>${char}</span>`).join('')}</code>`,
+            
+            getFinalAdditionHTML(resultLabel, terms, resultValue) {
+                return `<div class="aligned-bits">${terms.map(t => `<div class="bit-row"><span class="label">${t.l}</span>${this.renderBinarySimple(t.v)}</div>`).join('')}<div class="bit-op-line"><span class="label op">+</span><div class="line-element"></div></div><div class="bit-row result"><span class="label">${resultLabel}</span>${this.renderBinarySimple(resultValue)}</div></div>`;
+            },
+            
+            getAlignedBitwiseHTML(op, l1, v1, l2, v2, result, t1 = 'bin', n1 = 0, t2 = 'bin', n2 = 0) {
+                return `<div class="aligned-bits"><div class="bit-row"><span class="label">${l1}</span>${this.renderBinary(v1,t1,n1)}</div><div class="bit-row"><span class="label">${l2}</span>${this.renderBinary(v2,t2,n2)}</div><div class="bit-op-line"><span class="label op">${op}</span><div class="line-element"></div></div><div class="bit-row result"><span class="label"></span>${this.renderBinarySimple(result)}</div></div>`;
+            },
+            
+            getExpandedFuncHTML(funcName, inVar, inVal, N, R, R_xor1, outVal) {
+                const op3 = funcName.startsWith('s') ? 'SHR' : 'ROTR', type3 = funcName.startsWith('s') ? 'shr' : 'rotr';
+                return `<div class="formula-op-box"><span class="op-name">${funcName}</span>(<span class="var-name">${inVar}</span>)<div class="internal-flow !border-l-fuchsia-400 mt-2">${this.getAlignedBitwiseHTML('^',`ROTR(${N.rotr1})`,R.r1,`ROTR(${N.rotr2})`,R.r2,R_xor1,'rotr',N.rotr1,'rotr',N.rotr2)}${this.getAlignedBitwiseHTML('^',`result`,R_xor1,`${op3}(${N.shr3})`,R.s3,outVal,'bin',0,type3,N.shr3)}</div></div>`;
+            },
+            
+            getExpandedBitwiseHTML(funcName, r) {
+                if (funcName === 'Ch') return `<div class="formula-op-box"><span class="op-name">Ch</span>(<span class="var-name">e</span>, <span class="var-name">f</span>, <span class="var-name">g</span>)<div class="internal-flow !border-l-fuchsia-400 mt-2">${this.getAlignedBitwiseHTML('&','e',r.ch_in_e,'f',r.ch_in_f,r.ch_e_and_f)}${this.getAlignedBitwiseHTML('&','~e',r.ch_not_e,'g',r.ch_in_g,r.ch_not_e_and_g)}</div><div class="formula-connector mt-2">&rArr;</div><div class="formula-op-box formula-result">${this.getAlignedBitwiseHTML('^','(e&f)',r.ch_e_and_f,'(~e&g)',r.ch_not_e_and_g,r.ch)}</div></div>`;
+                if (funcName === 'Maj') return `<div class="formula-op-box"><span class="op-name">Maj</span>(<span class="var-name">a</span>, <span class="var-name">b</span>, <span class="var-name">c</span>)<div class="internal-flow !border-l-fuchsia-400 mt-2">${this.getAlignedBitwiseHTML('&','a',r.maj_in_a,'b',r.maj_in_b,r.maj_a_and_b)}${this.getAlignedBitwiseHTML('&','a',r.maj_in_a,'c',r.maj_in_c,r.maj_a_and_c)}${this.getAlignedBitwiseHTML('&','b',r.maj_in_b,'c',r.maj_in_c,r.maj_b_and_c)}</div><div class="formula-connector mt-2">&rArr;</div><div class="formula-op-box formula-result">${this.getAlignedBitwiseHTML('^','(a&b)',r.maj_a_and_b,'(a&c)',r.maj_a_and_c,r.maj_xor1)}${this.getAlignedBitwiseHTML('^','result',r.maj_xor1,'(b&c)',r.maj_b_and_c,r.maj)}</div></div>`;
+                return '';
+            },
+
+            getFormulaDiagramsHTML(r) {
+                return `<div class="formula-diagram"><div class="formula-title">temp1 = h + S1(e) + Ch(e,f,g) + K[${r.t}] + W[${r.t}]</div><div class="formula-flow-container"><div class="flow-item"><div class="formula-op-box"><span class="var-name">h</span><span class="bin-data small">${Sha256.toBin(r.in_h)}</span></div></div><div class="flow-item-op">+</div><div class="flow-item">${this.getExpandedFuncHTML('S1','e',r.S1_in_e,{rotr1:6,rotr2:11,shr3:25},{r1:r.S1_rotr6,r2:r.S1_rotr11,s3:r.S1_rotr25},r.S1_xor1,r.S1)}</div><div class="flow-item-op">+</div><div class="flow-item">${this.getExpandedBitwiseHTML('Ch',r)}</div><div class="flow-item-op">+</div><div class="flow-item"><div class="formula-op-box"><span class="var-name">K[${r.t}]</span><span class="bin-data small">${Sha256.toBin(r.k_t)}</span></div></div><div class="flow-item-op">+</div><div class="flow-item"><div class="formula-op-box"><span class="var-name">W[${r.t}]</span><span class="bin-data small">${Sha256.toBin(r.w_t)}</span></div></div></div><div class="formula-op-box formula-result mt-4">${this.getFinalAdditionHTML('temp1',[{l:'h',v:r.in_h},{l:'S1(e)',v:r.S1},{l:'Ch()',v:r.ch},{l:`K[${r.t}]`,v:r.k_t},{l:`W[${r.t}]`,v:r.w_t}],r.temp1)}</div></div><div class="formula-diagram"><div class="formula-title">temp2 = S0(a) + Maj(a,b,c)</div><div class="formula-flow-container"><div class="flow-item">${this.getExpandedFuncHTML('S0','a',r.S0_in_a,{rotr1:2,rotr2:13,shr3:22},{r1:r.S0_rotr2,r2:r.S0_rotr13,s3:r.S0_rotr22},r.S0_xor1,r.S0)}</div><div class="flow-item-op">+</div><div class="flow-item">${this.getExpandedBitwiseHTML('Maj',r)}</div></div><div class="formula-op-box formula-result mt-4">${this.getFinalAdditionHTML('temp2',[{l:'S0(a)',v:r.S0},{l:'Maj()',v:r.maj}],r.temp2)}</div></div>`;
+            }
+        };
+
+        Sha2_App.init();
+    </script>
+</body>
+</html>
