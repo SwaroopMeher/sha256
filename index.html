@@ -534,6 +534,17 @@
 </head>
 <body class="bg-black text-gray-200 min-h-screen">
 
+    <div id="small-screen-warning" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]" style="display: none;">
+        <div class="retro-bg border-2 retro-border-active retro-shadow-active rounded-lg p-8 max-w-md w-full text-center m-4">
+            <h2 class="text-2xl font-bold retro-text-header mb-4">Unsupported Screen Size</h2>
+            <p class="text-gray-300 mb-6">
+                This visualizer is designed for large screens and requires a minimum width of 1025 pixels to function correctly.
+                <br><br>
+                Please resize your window or switch to a larger device.
+            </p>
+        </div>
+    </div>
+
     <div class="container mx-auto max-w-6xl main-container">
         <header class="text-center my-8">
             <h1 class="text-4xl font-bold retro-text-header">SHA-256 Binary Visualizer</h1>
@@ -766,6 +777,10 @@
             debounceTimeout: null,
             
             init() {
+                // Screen size check
+                this.checkScreenSize();
+                window.addEventListener('resize', () => this.checkScreenSize());
+
                 // Event listener for automatic updates on input
                 (document.getElementById('message-input')).addEventListener('input', () => this.handleInput());
                 // Control Bar Listeners
@@ -781,6 +796,22 @@
                 this.populateSidebars();
                 this.populateBitwiseLegend();
                 this.runVisualization();
+            },
+            
+            checkScreenSize() {
+                const warningEl = document.getElementById('small-screen-warning');
+                const mainAppEl = document.querySelector('.main-container');
+                const sidebars = document.querySelectorAll('.constants-sidebar');
+
+                if (window.innerWidth < 1025) {
+                    warningEl.style.display = 'flex';
+                    if (mainAppEl) mainAppEl.style.display = 'none';
+                    sidebars.forEach(el => el.style.display = 'none');
+                } else {
+                    warningEl.style.display = 'none';
+                    if (mainAppEl) mainAppEl.style.display = 'block';
+                    sidebars.forEach(el => el.style.display = 'block');
+                }
             },
             
             debounce(func, delay) {
