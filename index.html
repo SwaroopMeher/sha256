@@ -538,7 +538,7 @@
         <div class="retro-bg border-2 retro-border-active retro-shadow-active rounded-lg p-8 max-w-md w-full text-center m-4">
             <h2 class="text-2xl font-bold retro-text-header mb-4">Unsupported Screen Size</h2>
             <p class="text-gray-300 mb-6">
-                This visualizer is designed for large screens and requires a minimum width of 1025 pixels to function correctly.
+                This visualizer is designed for large screens and requires a minimum width of 1725 pixels to function correctly.
                 <br><br>
                 Please resize your window or switch to a larger device.
             </p>
@@ -803,7 +803,7 @@
                 const mainAppEl = document.querySelector('.main-container');
                 const sidebars = document.querySelectorAll('.constants-sidebar');
 
-                if (window.innerWidth < 1025) {
+                if (window.innerWidth < 1725) {
                     warningEl.style.display = 'flex';
                     if (mainAppEl) mainAppEl.style.display = 'none';
                     sidebars.forEach(el => el.style.display = 'none');
